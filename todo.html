@@ -657,18 +657,23 @@
     // Load tasks from Firestore
     async function loadTasks() {
       try {
-        const snapshot = await db.collection('tasks').orderBy('id', 'desc').get();
+        const snapshot = await db.collection('tasks').get();
         tasks.length = 0;
+        taskId = 0;
         snapshot.forEach(doc => {
           const data = doc.data();
           tasks.push(data);
-          if (data.id > taskId) taskId = data.id;
+          if (data.id && data.id > taskId) taskId = data.id;
         });
+        // Sort by ID descending
+        tasks.sort((a, b) => (b.id || 0) - (a.id || 0));
         render();
         renderChart();
         renderPieChart();
       } catch (error) {
         console.error('Error loading tasks:', error);
+        // Still render even if there's an error
+        render();
       }
     }
 
