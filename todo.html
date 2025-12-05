@@ -495,6 +495,12 @@
           <option value="week">Due this week</option>
           <option value="month">Due this month</option>
         </select>
+        <select id="filterPrioritize">
+          <option value="all">Filter by prioritize</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
       </div>
       <table id="taskTable">
         <thead>
@@ -620,6 +626,7 @@
     const filterEpic = document.getElementById("filterEpic");
     const filterStatus = document.getElementById("filterStatus");
     const filterDeadline = document.getElementById("filterDeadline");
+    const filterPrioritize = document.getElementById("filterPrioritize");
     const dashEpic = document.getElementById("dashEpic");
     const dashStatus = document.getElementById("dashStatus");
     const dashDeadline = document.getElementById("dashDeadline");
@@ -955,7 +962,9 @@
         const statusMatch = filterStatus.value === "all" || t.status === filterStatus.value;
         const bucket = deadlineBucket(t.deadline);
         const deadlineMatch = filterDeadline.value === "all" || filterDeadline.value === bucket;
-        return epicMatch && statusMatch && deadlineMatch;
+        const prioritizeValue = t.prioritize || t.risk || "Low"; // Backward compatibility
+        const prioritizeMatch = filterPrioritize.value === "all" || prioritizeValue === filterPrioritize.value;
+        return epicMatch && statusMatch && deadlineMatch && prioritizeMatch;
       });
 
       if (!filtered.length) {
@@ -1110,7 +1119,7 @@
       }
     });
 
-    [filterEpic, filterStatus, filterDeadline].forEach(el => el.addEventListener("change", render));
+    [filterEpic, filterStatus, filterDeadline, filterPrioritize].forEach(el => el.addEventListener("change", render));
     [dashEpic, dashStatus, dashDeadline].forEach(el => el.addEventListener("change", updateMetrics));
 
     const savedTheme = localStorage.getItem("theme");
