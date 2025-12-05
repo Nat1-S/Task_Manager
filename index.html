@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Natanel Shani ToDoList - Login</title>
+  <style>
+    :root {
+      --bg: #f8fbff;
+      --panel: #ffffff;
+      --accent: #2a7bff;
+      --accent-2: #1b69e9;
+      --text: #0f1b33;
+      --muted: #5d6a85;
+      --danger: #ef476f;
+      --shadow: 0 18px 70px rgba(27, 69, 135, 0.18);
+      --border: rgba(27, 105, 233, 0.12);
+    }
+
+    body.dark {
+      --bg: #0c1322;
+      --panel: #111a2d;
+      --accent: #4c8dff;
+      --accent-2: #2a7bff;
+      --text: #e8f0ff;
+      --muted: #9bb0d1;
+      --danger: #ff6f91;
+      --shadow: 0 18px 70px rgba(0, 0, 0, 0.45);
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(101, 179, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 85% 12%, rgba(42, 123, 255, 0.16), transparent 32%),
+        radial-gradient(circle at 50% 90%, rgba(27, 105, 233, 0.12), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    body.dark {
+      background:
+        radial-gradient(circle at 18% 18%, rgba(76, 141, 255, 0.14), transparent 28%),
+        radial-gradient(circle at 85% 12%, rgba(42, 123, 255, 0.18), transparent 32%),
+        radial-gradient(circle at 50% 90%, rgba(42, 123, 255, 0.12), transparent 30%),
+        var(--bg);
+    }
+
+    .login-container {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 40px;
+      max-width: 420px;
+      width: 100%;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(27, 105, 233, 0.08);
+      color: var(--accent-2);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      box-shadow: 0 10px 30px rgba(27, 105, 233, 0.15);
+      margin-bottom: 20px;
+    }
+
+    body.dark .badge {
+      box-shadow: 0 10px 30px rgba(42, 123, 255, 0.2);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 8px;
+      display: block;
+      color: var(--text);
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(27, 105, 233, 0.04);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    body.dark input {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(42, 123, 255, 0.2);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 14px 45px rgba(42, 123, 255, 0.35);
+      transition: transform 0.2s ease;
+      margin-top: 8px;
+    }
+
+    body.dark button {
+      box-shadow: 0 8px 20px rgba(42, 123, 255, 0.15);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .error {
+      background: rgba(239, 71, 111, 0.1);
+      border: 1px solid rgba(239, 71, 111, 0.3);
+      color: var(--danger);
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .dark-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dark-toggle:hover {
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <button class="dark-toggle" id="darkToggle">Toggle Dark Mode</button>
+  
+  <div class="login-container">
+    <div class="badge">Natanel Shani Tasks</div>
+    <h1>Sign In</h1>
+    <div class="subtitle">Enter your email to access the board</div>
+    
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          placeholder="admin@example.com" 
+          required 
+          autocomplete="email"
+        >
+      </div>
+      <button type="submit">Sign In</button>
+      <div class="error" id="error">Access denied. This email is not authorized.</div>
+    </form>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById("loginForm");
+    const emailInput = document.getElementById("email");
+    const errorDiv = document.getElementById("error");
+    const darkToggle = document.getElementById("darkToggle");
+
+    // List of authorized admin emails
+    const ADMIN_EMAILS = [
+      "admin@natanelshani.com",
+      "natanel@example.com",
+      "Natanel.Shani@gmail.com",
+      "adipeled11@gmail.com"
+      // Add more admin emails here
+    ];
+
+    // Check if already logged in
+    const authToken = localStorage.getItem("authToken");
+    const authEmail = localStorage.getItem("authEmail");
+    if (authToken && authEmail) {
+      const isAuthorized = ADMIN_EMAILS.some(adminEmail => 
+        adminEmail.toLowerCase() === authEmail.toLowerCase()
+      );
+      if (isAuthorized) {
+        window.location.href = "todo.html";
+      }
+    }
+
+    // Dark mode toggle
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") document.body.classList.add("dark");
+
+    darkToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const next = document.body.classList.contains("dark") ? "dark" : "light";
+      localStorage.setItem("theme", next);
+    });
+
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim().toLowerCase();
+      
+      errorDiv.classList.remove("show");
+
+      if (!email) {
+        errorDiv.textContent = "Please enter your email address.";
+        errorDiv.classList.add("show");
+        return;
+      }
+
+      // Case-insensitive comparison
+      const isAuthorized = ADMIN_EMAILS.some(adminEmail => 
+        adminEmail.toLowerCase() === email
+      );
+
+      if (!isAuthorized) {
+        errorDiv.textContent = "Access denied. This email is not authorized to access the board.";
+        errorDiv.classList.add("show");
+        emailInput.focus();
+        return;
+      }
+
+      // Store authentication
+      const token = btoa(email + ":" + Date.now());
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("authEmail", email);
+
+      // Redirect to todo page
+      window.location.href = "todo.html";
+    });
+
+    // Focus email input on load
+    emailInput.focus();
+  </script>
+</body>
+</html>
+

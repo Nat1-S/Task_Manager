@@ -1,0 +1,1340 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Natanel Shani ToDoList</title>
+  <style>
+    :root {
+      --bg: #f8fbff;
+      --panel: #ffffff;
+      --accent: #2a7bff;
+      --accent-2: #1b69e9;
+      --text: #0f1b33;
+      --muted: #5d6a85;
+      --success: #1fbf75;
+      --warning: #f9b234;
+      --danger: #ef476f;
+      --shadow: 0 18px 70px rgba(27, 69, 135, 0.18);
+      --border: rgba(27, 105, 233, 0.12);
+    }
+
+    body.dark {
+      --bg: #0c1322;
+      --panel: #111a2d;
+      --accent: #4c8dff;
+      --accent-2: #2a7bff;
+      --text: #e8f0ff;
+      --muted: #9bb0d1;
+      --success: #2dd196;
+      --warning: #f7c651;
+      --danger: #ff6f91;
+      --shadow: 0 18px 70px rgba(0, 0, 0, 0.45);
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(101, 179, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 85% 12%, rgba(42, 123, 255, 0.16), transparent 32%),
+        radial-gradient(circle at 50% 90%, rgba(27, 105, 233, 0.12), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      padding: 32px 20px 60px;
+    }
+
+    body.dark {
+      background:
+        radial-gradient(circle at 18% 18%, rgba(76, 141, 255, 0.14), transparent 28%),
+        radial-gradient(circle at 85% 12%, rgba(42, 123, 255, 0.18), transparent 32%),
+        radial-gradient(circle at 50% 90%, rgba(42, 123, 255, 0.12), transparent 30%),
+        var(--bg);
+    }
+
+    .shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(27, 105, 233, 0.08);
+      color: var(--accent-2);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      box-shadow: 0 10px 30px rgba(27, 105, 233, 0.15);
+    }
+
+    h1 {
+      margin: 6px 0 0;
+      font-size: clamp(28px, 3vw, 36px);
+    }
+
+    .muted { color: var(--muted); }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    label {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 6px;
+      display: block;
+      color: var(--text);
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(27, 105, 233, 0.04);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    body.dark input, body.dark select {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+    }
+
+    body.dark select option {
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(42, 123, 255, 0.2);
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 14px 45px rgba(42, 123, 255, 0.35);
+      border: none;
+    }
+
+    body.dark button {
+      box-shadow: 0 8px 20px rgba(42, 123, 255, 0.15);
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(15, 27, 51, 0.06);
+      font-size: 14px;
+    }
+
+    body.dark th, body.dark td {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    th {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill.epic-work { background: rgba(59, 130, 246, 0.14); color: #2563eb; }
+    .pill.epic-personal { background: rgba(139, 92, 246, 0.14); color: #7c3aed; }
+    .pill.epic-research { background: rgba(6, 182, 212, 0.14); color: #0891b2; }
+    .pill.epic-growth { background: rgba(16, 185, 129, 0.14); color: #059669; }
+    .pill.epic-other { background: rgba(245, 158, 11, 0.14); color: #d97706; }
+    .pill.risk-low { background: rgba(31, 191, 117, 0.12); color: #11885a; }
+    .pill.risk-medium { background: rgba(249, 178, 52, 0.18); color: #a56705; }
+    .pill.risk-med { background: rgba(249, 178, 52, 0.18); color: #a56705; }
+    .pill.risk-high { background: rgba(239, 71, 111, 0.15); color: #b6163c; }
+    .pill.status-open { background: rgba(42, 123, 255, 0.12); color: var(--accent-2); }
+    .pill.status-in-progress { background: rgba(249, 178, 52, 0.16); color: #a56705; }
+    .pill.status-done { background: rgba(31, 191, 117, 0.14); color: #11885a; }
+
+    .filters, .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      background: rgba(27, 105, 233, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .metric span { font-size: 13px; color: var(--muted); }
+    .metric strong { font-size: 22px; }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 8px 0 0;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .controls select {
+      width: auto;
+      min-width: 160px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    body.dark .controls select {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+    }
+
+    body.dark .controls select option {
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .status-select {
+      width: 100%;
+      min-width: 150px;
+      background: #fff;
+      font-weight: 700;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    body.dark .status-select {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .date-cell {
+      direction: ltr;
+      unicode-bidi: bidi-override;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .delete-btn {
+      background: rgba(239, 71, 111, 0.12);
+      color: #b6163c;
+      border: 1px solid rgba(239, 71, 111, 0.25);
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 0.15s ease;
+      box-shadow: none;
+    }
+
+    .delete-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: none;
+    }
+
+    .status-open {
+      background: rgba(239, 71, 111, 0.12);
+      color: #b6163c;
+      border-color: rgba(239, 71, 111, 0.25);
+    }
+
+    .status-in-progress {
+      background: rgba(249, 178, 52, 0.18);
+      color: #a56705;
+      border-color: rgba(249, 178, 52, 0.3);
+    }
+
+    .status-done {
+      background: rgba(31, 191, 117, 0.16);
+      color: #11885a;
+      border-color: rgba(31, 191, 117, 0.28);
+    }
+
+    .deadline-input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .no-rows {
+      text-align: center;
+      color: var(--muted);
+      padding: 16px 0;
+    }
+
+    .member-list {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .member-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(42, 123, 255, 0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-weight: 600;
+    }
+
+    body.dark .member-chip {
+      background: rgba(76, 141, 255, 0.12);
+      color: var(--text);
+    }
+
+    .member-chip button {
+      border: none;
+      background: transparent;
+      color: var(--danger);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .member-chip button:hover {
+      color: var(--danger);
+      opacity: 0.8;
+    }
+
+    .member-pop {
+      position: absolute;
+      right: 0;
+      top: 110%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 12px;
+      padding: 12px;
+      display: none;
+      min-width: 240px;
+      z-index: 5;
+      color: var(--text);
+    }
+
+    .member-pop * {
+      color: var(--text);
+    }
+
+    .member-pop.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <div class="badge">Natanel Shani Tasks</div>
+        <h1>Mission Control To-Do</h1>
+        <div class="muted">Organize epics, owners, risk, and delivery dates in one place.</div>
+      </div>
+      <div class="header-actions">
+        <form id="memberForm" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <input id="memberName" type="text" placeholder="Add member" style="width:180px;">
+          <button type="submit" style="width:auto; padding:10px 14px;">Add</button>
+        </form>
+        <button id="memberToggle" style="width:auto; padding:10px 14px;">Members</button>
+        <div id="memberList" class="member-pop">
+          <div class="member-list"></div>
+        </div>
+        <button id="darkToggle" style="width:auto;padding:10px 14px;min-width:140px;">Toggle Dark Mode</button>
+        <button id="logoutBtn" style="width:auto;padding:10px 14px;background:rgba(239, 71, 111, 0.12);color:#b6163c;border:1px solid rgba(239, 71, 111, 0.25);box-shadow:none;">Logout</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h3 style="margin: 0 0 8px;">Create Task</h3>
+      <form id="taskForm">
+        <div>
+          <label for="epic">Epic</label>
+          <select id="epic" required>
+            <option value="Work">Work</option>
+            <option value="Personal">Personal</option>
+            <option value="Research">Research</option>
+            <option value="Growth">Growth</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="task">Task</label>
+          <input id="task" type="text" placeholder="Ship onboarding flow" required>
+        </div>
+        <div>
+          <label for="deadlineDisplay">Deadline (DD/MM/YYYY)</label>
+          <div style="position:relative;">
+            <input
+              id="deadlineDisplay"
+              type="text"
+              inputmode="none"
+              placeholder="DD/MM/YYYY"
+              readonly
+              style="width:100%; cursor:pointer; pointer-events:none;"
+            >
+            <input
+              id="deadline"
+              type="date"
+              lang="en"
+              style="position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;"
+            >
+          </div>
+        </div>
+        <div>
+          <label for="assignee">Assignee</label>
+          <select id="assignee"></select>
+        </div>
+        <div>
+          <label for="risk">Risk</label>
+          <select id="risk" required>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+        <div>
+          <label for="status">Status</label>
+          <select id="status" required>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+        <div>
+          <button type="submit">Add Task</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h3 style="margin: 0 0 8px;">Backlog</h3>
+      <div class="controls">
+        <select id="filterEpic">
+          <option value="all">Filter by epic</option>
+          <option value="Work">Work</option>
+          <option value="Personal">Personal</option>
+          <option value="Research">Research</option>
+          <option value="Growth">Growth</option>
+          <option value="Other">Other</option>
+        </select>
+        <select id="filterStatus">
+          <option value="all">Filter by status</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Done">Done</option>
+        </select>
+        <select id="filterDeadline">
+          <option value="all">Filter by deadline</option>
+          <option value="overdue">Overdue</option>
+          <option value="week">Due this week</option>
+          <option value="month">Due this month</option>
+        </select>
+      </div>
+      <table id="taskTable">
+        <thead>
+          <tr>
+            <th>Epic</th>
+            <th>Task</th>
+            <th>Deadline</th>
+            <th>Assignee</th>
+            <th>Risk</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="taskBody">
+          <tr class="no-rows"><td colspan="6">No tasks yet. Add your first mission.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h3 style="margin: 0 0 8px;">Dashboard</h3>
+      <div class="controls">
+        <select id="dashEpic">
+          <option value="all">Dashboard: epic</option>
+          <option value="Work">Work</option>
+          <option value="Personal">Personal</option>
+          <option value="Research">Research</option>
+          <option value="Growth">Growth</option>
+          <option value="Other">Other</option>
+        </select>
+        <select id="dashStatus">
+          <option value="all">Dashboard: status</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Done">Done</option>
+        </select>
+        <select id="dashDeadline">
+          <option value="all">Dashboard: deadline</option>
+          <option value="overdue">Overdue</option>
+          <option value="week">Due this week</option>
+          <option value="month">Due this month</option>
+        </select>
+      </div>
+      <div class="metrics" id="metrics">
+        <div class="metric">
+          <span>Total tasks</span>
+          <strong id="mTotal">0</strong>
+        </div>
+        <div class="metric">
+          <span>Open</span>
+          <strong id="mOpen">0</strong>
+        </div>
+        <div class="metric">
+          <span>In Progress</span>
+          <strong id="mProgress">0</strong>
+        </div>
+        <div class="metric">
+          <span>Done</span>
+          <strong id="mDone">0</strong>
+        </div>
+      </div>
+      <div class="subtle">Use dashboard filters to slice progress by epic, deadline, or status.</div>
+    </section>
+
+    <section class="panel">
+      <h3 style="margin: 0 0 8px;">Progress Chart</h3>
+      <div class="controls">
+        <select id="chartEpic">
+          <option value="all">All Epics</option>
+          <option value="Work">Work</option>
+          <option value="Personal">Personal</option>
+          <option value="Research">Research</option>
+          <option value="Growth">Growth</option>
+          <option value="Other">Other</option>
+        </select>
+        <select id="chartAssignee">
+          <option value="all">All Assignees</option>
+        </select>
+        <select id="chartPeriod">
+          <option value="week">Week</option>
+          <option value="month">Month</option>
+          <option value="quarter">Quarter</option>
+          <option value="year">Year</option>
+        </select>
+      </div>
+      <div style="margin-top: 20px; display: flex; gap: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 400px; position: relative; overflow-x: auto;">
+          <canvas id="chartCanvas" width="800" height="400" style="max-width: 100%; height: auto; display: block;"></canvas>
+        </div>
+        <div style="flex: 0 0 350px; position: relative;">
+          <canvas id="pieCanvas" width="350" height="350" style="max-width: 100%; height: auto; display: block;"></canvas>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    // Authentication check
+    const ADMIN_EMAILS = [
+      "admin@natanelshani.com",
+      "natanel@example.com",
+      "Natanel.Shani@gmail.com",
+      "adipeled11@gmail.com"
+      // Add more admin emails here (must match login.html)
+    ];
+
+    const authToken = localStorage.getItem("authToken");
+    const authEmail = localStorage.getItem("authEmail");
+    
+    if (!authToken || !authEmail) {
+      window.location.href = "login.html";
+    } else {
+      // Case-insensitive comparison
+      const isAuthorized = ADMIN_EMAILS.some(adminEmail => 
+        adminEmail.toLowerCase() === authEmail.toLowerCase()
+      );
+      if (!isAuthorized) {
+        window.location.href = "login.html";
+      }
+    }
+
+    const form = document.getElementById("taskForm");
+    const taskBody = document.getElementById("taskBody");
+    const filterEpic = document.getElementById("filterEpic");
+    const filterStatus = document.getElementById("filterStatus");
+    const filterDeadline = document.getElementById("filterDeadline");
+    const dashEpic = document.getElementById("dashEpic");
+    const dashStatus = document.getElementById("dashStatus");
+    const dashDeadline = document.getElementById("dashDeadline");
+    const darkToggle = document.getElementById("darkToggle");
+    const memberForm = document.getElementById("memberForm");
+    const memberName = document.getElementById("memberName");
+    const memberList = document.getElementById("memberList");
+    const memberListInner = memberList.querySelector(".member-list");
+    const memberToggle = document.getElementById("memberToggle");
+    const assigneeSelect = document.getElementById("assignee");
+    const deadlineInput = document.getElementById("deadline");
+    const deadlineDisplay = document.getElementById("deadlineDisplay");
+
+    const metrics = {
+      total: document.getElementById("mTotal"),
+      open: document.getElementById("mOpen"),
+      progress: document.getElementById("mProgress"),
+      done: document.getElementById("mDone"),
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const tasks = [];
+    let taskId = 0;
+    const members = [];
+
+    // Load tasks from Firestore
+    async function loadTasks() {
+      try {
+        const snapshot = await db.collection('tasks').orderBy('id', 'desc').get();
+        tasks.length = 0;
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          tasks.push(data);
+          if (data.id > taskId) taskId = data.id;
+        });
+        render();
+        renderChart();
+        renderPieChart();
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+      }
+    }
+
+    // Save task to Firestore
+    async function saveTask(task) {
+      try {
+        await db.collection('tasks').doc(task.id.toString()).set(task);
+      } catch (error) {
+        console.error('Error saving task:', error);
+      }
+    }
+
+    // Delete task from Firestore
+    async function deleteTask(taskId) {
+      try {
+        await db.collection('tasks').doc(taskId.toString()).delete();
+      } catch (error) {
+        console.error('Error deleting task:', error);
+      }
+    }
+
+    // Load members from Firestore
+    async function loadMembers() {
+      try {
+        const doc = await db.collection('members').doc('list').get();
+        if (doc.exists) {
+          members.length = 0;
+          members.push(...doc.data().list);
+          renderMembers();
+        }
+      } catch (error) {
+        console.error('Error loading members:', error);
+      }
+    }
+
+    // Save members to Firestore
+    async function saveMembers() {
+      try {
+        await db.collection('members').doc('list').set({ list: members });
+      } catch (error) {
+        console.error('Error saving members:', error);
+      }
+    }
+
+    // Real-time listener for tasks (syncs across all users)
+    db.collection('tasks').onSnapshot((snapshot) => {
+      const changes = snapshot.docChanges();
+      changes.forEach(change => {
+        if (change.type === 'added' || change.type === 'modified') {
+          const data = change.doc.data();
+          const index = tasks.findIndex(t => t.id === data.id);
+          if (index >= 0) {
+            tasks[index] = data;
+          } else {
+            tasks.push(data);
+            if (data.id > taskId) taskId = data.id;
+          }
+        } else if (change.type === 'removed') {
+          const id = Number(change.doc.id);
+          const index = tasks.findIndex(t => t.id === id);
+          if (index >= 0) {
+            tasks.splice(index, 1);
+          }
+        }
+      });
+      render();
+      renderChart();
+      renderPieChart();
+    });
+
+    // Load initial data
+    loadTasks();
+    loadMembers();
+
+    function formatDate(value) {
+      if (!value) return "";
+      const d = new Date(value + "T00:00:00");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    function deadlineBucket(value) {
+      if (!value) return "none";
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const deadline = new Date(value + "T00:00:00");
+      const diff = (deadline - today) / (1000 * 60 * 60 * 24);
+      if (deadline < today) return "overdue";
+      if (diff <= 7) return "week";
+      if (diff <= 31) return "month";
+      return "later";
+    }
+
+    function updateMetrics() {
+      const filtered = filterForDashboard(tasks);
+      metrics.total.textContent = filtered.length;
+      metrics.open.textContent = filtered.filter(t => t.status === "Open").length;
+      metrics.progress.textContent = filtered.filter(t => t.status === "In Progress").length;
+      metrics.done.textContent = filtered.filter(t => t.status === "Done").length;
+      renderChart();
+      renderPieChart();
+    }
+
+    function filterForDashboard(list) {
+      return list.filter(t => {
+        const epicMatch = dashEpic.value === "all" || t.epic === dashEpic.value;
+        const statusMatch = dashStatus.value === "all" || t.status === dashStatus.value;
+        const bucket = deadlineBucket(t.deadline);
+        const deadlineMatch = dashDeadline.value === "all" || dashDeadline.value === bucket;
+        return epicMatch && statusMatch && deadlineMatch;
+      });
+    }
+
+    function render() {
+      taskBody.innerHTML = "";
+
+      tasks.forEach(t => {
+        if (!t.createdAt) t.createdAt = new Date().toISOString().split("T")[0];
+      });
+
+      const filtered = tasks.filter(t => {
+        const epicMatch = filterEpic.value === "all" || t.epic === filterEpic.value;
+        const statusMatch = filterStatus.value === "all" || t.status === filterStatus.value;
+        const bucket = deadlineBucket(t.deadline);
+        const deadlineMatch = filterDeadline.value === "all" || filterDeadline.value === bucket;
+        return epicMatch && statusMatch && deadlineMatch;
+      });
+
+      if (!filtered.length) {
+        taskBody.innerHTML = '<tr class="no-rows"><td colspan="7">No tasks match this view.</td></tr>';
+      } else {
+        filtered.forEach(t => {
+          const tr = document.createElement("tr");
+          tr.dataset.id = t.id;
+          tr.innerHTML = `
+            <td><span class="pill epic-${t.epic.toLowerCase()}">${t.epic}</span></td>
+            <td>${t.task}</td>
+            <td class="date-cell">
+              <div style="position:relative;">
+                <input
+                  type="text"
+                  class="deadline-display"
+                  data-id="${t.id}"
+                  value="${t.deadline ? formatDate(t.deadline) : ""}"
+                  placeholder="DD/MM/YYYY"
+                  readonly
+                  style="width:100%; cursor:pointer; pointer-events:none;"
+                >
+                <input
+                  type="date"
+                  class="deadline-input"
+                  data-id="${t.id}"
+                  value="${t.deadline || ""}"
+                  style="position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;"
+                >
+              </div>
+            </td>
+            <td>${t.assignee}</td>
+            <td><span class="pill risk-${t.risk.toLowerCase()}">${t.risk}</span></td>
+            <td>
+              <select class="status-select" data-id="${t.id}">
+                <option ${t.status === "Open" ? "selected" : ""}>Open</option>
+                <option ${t.status === "In Progress" ? "selected" : ""}>In Progress</option>
+                <option ${t.status === "Done" ? "selected" : ""}>Done</option>
+              </select>
+            </td>
+            <td><button class="delete-btn" data-id="${t.id}">Delete</button></td>
+          `;
+          taskBody.appendChild(tr);
+          applyStatusStyle(tr.querySelector(".status-select"));
+        });
+      }
+
+      updateMetrics();
+      renderChart();
+      renderPieChart();
+    }
+
+    function renderMembers(selected) {
+      assigneeSelect.innerHTML = "";
+      const unassigned = document.createElement("option");
+      unassigned.value = "";
+      unassigned.textContent = "Unassigned";
+      assigneeSelect.appendChild(unassigned);
+      members.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        assigneeSelect.appendChild(opt);
+      });
+      if (selected && members.includes(selected)) {
+        assigneeSelect.value = selected;
+      }
+
+      chartAssignee.innerHTML = "";
+      const allOption = document.createElement("option");
+      allOption.value = "all";
+      allOption.textContent = "All Assignees";
+      chartAssignee.appendChild(allOption);
+      const unassignedChart = document.createElement("option");
+      unassignedChart.value = "";
+      unassignedChart.textContent = "Unassigned";
+      chartAssignee.appendChild(unassignedChart);
+      members.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        chartAssignee.appendChild(opt);
+      });
+
+      memberListInner.innerHTML = "";
+      members.forEach(name => {
+        const chip = document.createElement("div");
+        chip.className = "member-chip";
+        chip.innerHTML = `<span>${name}</span><button type="button" data-name="${name}">×</button>`;
+        memberListInner.appendChild(chip);
+      });
+    }
+
+    function applyStatusStyle(select) {
+      if (!select) return;
+      select.classList.remove("status-open", "status-in-progress", "status-done");
+      const value = select.value;
+      if (value === "Open") select.classList.add("status-open");
+      if (value === "In Progress") select.classList.add("status-in-progress");
+      if (value === "Done") select.classList.add("status-done");
+    }
+
+    taskBody.addEventListener("change", (e) => {
+      if (e.target.classList.contains("status-select")) {
+        const id = Number(e.target.dataset.id);
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+          task.status = e.target.value;
+          applyStatusStyle(e.target);
+          updateMetrics();
+        }
+      }
+      if (e.target.classList.contains("deadline-input")) {
+        const id = Number(e.target.dataset.id);
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+          task.deadline = e.target.value;
+          const display = e.target.parentElement.querySelector(".deadline-display");
+          if (display) display.value = task.deadline ? formatDate(task.deadline) : "";
+          updateMetrics();
+        }
+      }
+    });
+
+    taskBody.addEventListener("click", (e) => {
+      if (e.target.classList.contains("delete-btn")) {
+        const id = Number(e.target.dataset.id);
+        const idx = tasks.findIndex(t => t.id === id);
+        if (idx !== -1) {
+          tasks.splice(idx, 1);
+          deleteTask(id); // Delete from Firestore
+          render();
+          renderChart();
+          renderPieChart();
+        }
+      }
+      const dateCell = e.target.closest(".date-cell");
+      if (dateCell) {
+        const hidden = dateCell.querySelector(".deadline-input");
+        if (hidden) {
+          if (hidden.showPicker) hidden.showPicker();
+          else hidden.focus();
+        }
+      }
+    });
+
+    [filterEpic, filterStatus, filterDeadline].forEach(el => el.addEventListener("change", render));
+    [dashEpic, dashStatus, dashDeadline].forEach(el => el.addEventListener("change", updateMetrics));
+
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") document.body.classList.add("dark");
+
+    darkToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const next = document.body.classList.contains("dark") ? "dark" : "light";
+      localStorage.setItem("theme", next);
+    });
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authEmail");
+      window.location.href = "login.html";
+    });
+
+    memberForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = memberName.value.trim();
+      if (name && !members.includes(name)) {
+        members.push(name);
+        saveMembers(); // Save to Firestore
+        renderMembers(name);
+      }
+      memberName.value = "";
+    });
+
+    memberList.addEventListener("click", (e) => {
+      if (e.target.dataset.name) {
+        const name = e.target.dataset.name;
+        const idx = members.indexOf(name);
+        if (idx !== -1) {
+          members.splice(idx, 1);
+          saveMembers(); // Save to Firestore
+          renderMembers();
+        }
+      }
+    });
+
+    memberToggle.addEventListener("click", () => {
+      memberList.classList.toggle("active");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!memberList.contains(e.target) && !memberToggle.contains(e.target) && !memberForm.contains(e.target)) {
+        memberList.classList.remove("active");
+      }
+    });
+
+    const deadlineContainer = deadlineDisplay.parentElement;
+    deadlineContainer.addEventListener("click", () => {
+      if (deadlineInput.showPicker) deadlineInput.showPicker();
+      else deadlineInput.focus();
+    });
+
+    deadlineInput.addEventListener("change", () => {
+      deadlineDisplay.value = deadlineInput.value ? formatDate(deadlineInput.value) : "";
+    });
+
+    const chartCanvas = document.getElementById("chartCanvas");
+    const pieCanvas = document.getElementById("pieCanvas");
+    const chartEpic = document.getElementById("chartEpic");
+    const chartAssignee = document.getElementById("chartAssignee");
+    const chartPeriod = document.getElementById("chartPeriod");
+    const ctx = chartCanvas.getContext("2d");
+    const pieCtx = pieCanvas.getContext("2d");
+
+    function getPeriodDates(period) {
+      const now = new Date();
+      const dates = [];
+      let start, interval;
+
+      if (period === "week") {
+        start = new Date(now);
+        start.setDate(start.getDate() - 7);
+        for (let i = 0; i < 8; i++) {
+          const d = new Date(start);
+          d.setDate(d.getDate() + i);
+          dates.push(d.toISOString().split("T")[0]);
+        }
+      } else if (period === "month") {
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        for (let i = 0; i <= days; i += Math.max(1, Math.floor(days / 10))) {
+          const d = new Date(start);
+          d.setDate(d.getDate() + i);
+          dates.push(d.toISOString().split("T")[0]);
+        }
+      } else if (period === "quarter") {
+        start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        const months = [];
+        for (let i = 0; i < 4; i++) {
+          const d = new Date(start);
+          d.setMonth(d.getMonth() + i);
+          months.push(d.toISOString().split("T")[0].substring(0, 7));
+        }
+        return months;
+      } else if (period === "year") {
+        start = new Date(now.getFullYear() - 1, 0, 1);
+        const months = [];
+        for (let i = 0; i < 13; i++) {
+          const d = new Date(start);
+          d.setMonth(d.getMonth() + i);
+          months.push(d.toISOString().split("T")[0].substring(0, 7));
+        }
+        return months;
+      }
+      return dates;
+    }
+
+    function getTaskCountsByDate(filteredTasks, period) {
+      const dates = getPeriodDates(period);
+      const counts = { open: [], progress: [], done: [] };
+
+      dates.forEach(date => {
+        let open = 0, progress = 0, done = 0;
+
+        filteredTasks.forEach(task => {
+          if (!task.createdAt) return;
+          const taskDate = new Date(task.createdAt).toISOString().split("T")[0];
+          const taskMonth = taskDate.substring(0, 7);
+
+          let matches = false;
+          if (period === "week" || period === "month") {
+            matches = taskDate <= date;
+          } else {
+            matches = taskMonth <= date;
+          }
+
+          if (matches) {
+            if (task.status === "Open") open++;
+            else if (task.status === "In Progress") progress++;
+            else if (task.status === "Done") done++;
+          }
+        });
+
+        counts.open.push(open);
+        counts.progress.push(progress);
+        counts.done.push(done);
+      });
+
+      return { dates, counts };
+    }
+
+    function getFilteredTasksForChart() {
+      return tasks.filter(t => {
+        const epicMatch = chartEpic.value === "all" || t.epic === chartEpic.value;
+        const assigneeMatch = chartAssignee.value === "all" || t.assignee === chartAssignee.value || (!t.assignee && chartAssignee.value === "");
+        return epicMatch && assigneeMatch;
+      });
+    }
+
+    function renderChart() {
+      const filtered = getFilteredTasksForChart();
+
+      const { dates, counts } = getTaskCountsByDate(filtered, chartPeriod.value);
+      const maxCount = Math.max(
+        ...counts.open,
+        ...counts.progress,
+        ...counts.done,
+        1
+      );
+
+      const width = chartCanvas.width;
+      const height = chartCanvas.height;
+      const padding = 60;
+      const chartWidth = width - padding * 2;
+      const chartHeight = height - padding * 2;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--bg") || "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      const isDark = document.body.classList.contains("dark");
+      ctx.strokeStyle = isDark ? "#666" : "#ddd";
+      ctx.fillStyle = isDark ? "#999" : "#666";
+      ctx.font = "12px system-ui";
+
+      ctx.beginPath();
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, height - padding);
+      ctx.lineTo(width - padding, height - padding);
+      ctx.stroke();
+
+      const stepX = chartWidth / (dates.length - 1 || 1);
+      const scaleY = chartHeight / maxCount;
+
+      dates.forEach((date, i) => {
+        const x = padding + i * stepX;
+        const label = chartPeriod.value === "week" || chartPeriod.value === "month"
+          ? new Date(date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit" })
+          : date;
+        ctx.save();
+        ctx.translate(x, height - padding + 20);
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+      });
+
+      for (let i = 0; i <= 5; i++) {
+        const y = height - padding - (i * chartHeight / 5);
+        const value = Math.round((i * maxCount) / 5);
+        ctx.fillText(value.toString(), padding - 30, y + 4);
+        ctx.beginPath();
+        ctx.moveTo(padding - 5, y);
+        ctx.lineTo(padding, y);
+        ctx.stroke();
+      }
+
+      function drawLine(data, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        data.forEach((value, i) => {
+          const x = padding + i * stepX;
+          const y = height - padding - (value * scaleY);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      }
+
+      drawLine(counts.open, "#ef4444");
+      drawLine(counts.progress, "#f59e0b");
+      drawLine(counts.done, "#10b981");
+
+      ctx.fillStyle = "#ef4444";
+      ctx.fillText("Open", width - padding - 150, padding + 20);
+      ctx.fillStyle = "#f59e0b";
+      ctx.fillText("In Progress", width - padding - 150, padding + 40);
+      ctx.fillStyle = "#10b981";
+      ctx.fillText("Done", width - padding - 150, padding + 60);
+      
+      renderPieChart();
+    }
+
+    function renderPieChart() {
+      const filtered = getFilteredTasksForChart();
+      const epicCounts = {
+        Work: 0,
+        Personal: 0,
+        Research: 0,
+        Growth: 0,
+        Other: 0
+      };
+
+      filtered.forEach(task => {
+        if (epicCounts.hasOwnProperty(task.epic)) {
+          epicCounts[task.epic]++;
+        }
+      });
+
+      const epics = Object.keys(epicCounts).filter(epic => epicCounts[epic] > 0);
+      const counts = epics.map(epic => epicCounts[epic]);
+      const total = counts.reduce((a, b) => a + b, 0);
+
+      if (total === 0) {
+        pieCtx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
+        const isDark = document.body.classList.contains("dark");
+        pieCtx.fillStyle = isDark ? "#999" : "#666";
+        pieCtx.font = "14px system-ui";
+        pieCtx.textAlign = "center";
+        pieCtx.fillText("No data", pieCanvas.width / 2, pieCanvas.height / 2);
+        return;
+      }
+
+      const width = pieCanvas.width;
+      const height = pieCanvas.height;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.min(width, height) / 2 - 40;
+
+      pieCtx.clearRect(0, 0, width, height);
+      const isDark = document.body.classList.contains("dark");
+      pieCtx.fillStyle = isDark ? "#1a1a1a" : "#ffffff";
+      pieCtx.fillRect(0, 0, width, height);
+
+      const colors = {
+        Work: "#3b82f6",
+        Personal: "#8b5cf6",
+        Research: "#06b6d4",
+        Growth: "#10b981",
+        Other: "#f59e0b"
+      };
+
+      let currentAngle = -Math.PI / 2;
+
+      epics.forEach((epic, i) => {
+        const sliceAngle = (counts[i] / total) * 2 * Math.PI;
+
+        pieCtx.beginPath();
+        pieCtx.moveTo(centerX, centerY);
+        pieCtx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+        pieCtx.closePath();
+        pieCtx.fillStyle = colors[epic];
+        pieCtx.fill();
+
+        const labelAngle = currentAngle + sliceAngle / 2;
+        const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+        const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+
+        const percentage = Math.round((counts[i] / total) * 100);
+        pieCtx.fillStyle = "#ffffff";
+        pieCtx.font = "bold 12px system-ui";
+        pieCtx.textAlign = "center";
+        pieCtx.textBaseline = "middle";
+        pieCtx.fillText(percentage + "%", labelX, labelY);
+
+        currentAngle += sliceAngle;
+      });
+
+      const legendY = centerY + radius + 30;
+      let legendX = centerX - (epics.length * 60) / 2;
+      epics.forEach((epic, i) => {
+        pieCtx.fillStyle = colors[epic];
+        pieCtx.fillRect(legendX, legendY, 12, 12);
+        pieCtx.fillStyle = isDark ? "#ccc" : "#333";
+        pieCtx.font = "11px system-ui";
+        pieCtx.textAlign = "left";
+        pieCtx.textBaseline = "top";
+        pieCtx.fillText(epic, legendX + 16, legendY);
+        legendX += 80;
+      });
+    }
+
+    chartEpic.addEventListener("change", () => {
+      renderChart();
+      renderPieChart();
+    });
+    chartAssignee.addEventListener("change", () => {
+      renderChart();
+      renderPieChart();
+    });
+    chartPeriod.addEventListener("change", renderChart);
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const task = {
+        id: ++taskId,
+        epic: document.getElementById("epic").value,
+        task: document.getElementById("task").value.trim(),
+        deadline: deadlineInput.value,
+        assignee: document.getElementById("assignee").value,
+        risk: document.getElementById("risk").value,
+        status: document.getElementById("status").value,
+        createdAt: new Date().toISOString().split("T")[0],
+      };
+
+      if (!task.task) return;
+      tasks.push(task);
+      saveTask(task); // Save to Firestore
+      form.reset();
+      deadlineInput.value = "";
+      deadlineDisplay.value = "";
+      render();
+      renderChart();
+      renderPieChart();
+    });
+
+    taskBody.addEventListener("change", (e) => {
+      if (e.target.classList.contains("status-select")) {
+        const id = Number(e.target.dataset.id);
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+          task.status = e.target.value;
+          saveTask(task); // Save to Firestore
+          applyStatusStyle(e.target);
+          updateMetrics();
+          renderChart();
+          renderPieChart();
+        }
+      }
+      if (e.target.classList.contains("deadline-input")) {
+        const id = Number(e.target.dataset.id);
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+          task.deadline = e.target.value;
+          saveTask(task); // Save to Firestore
+          const display = e.target.parentElement.querySelector(".deadline-display");
+          if (display) display.value = task.deadline ? formatDate(task.deadline) : "";
+          updateMetrics();
+        }
+      }
+    });
+
+    // Initial render (data will load from Firestore)
+    renderMembers();
+  </script>
+</body>
+</html>
+
