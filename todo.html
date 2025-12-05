@@ -594,7 +594,18 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
+
+  <script>
+    // Firebase Configuration - Embedded directly for reliability
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJDarSyp9aWby0aDwUCEOIEKxHKCJyzjk",
+      authDomain: "tasks-manager-3aed5.firebaseapp.com",
+      projectId: "tasks-manager-3aed5",
+      storageBucket: "tasks-manager-3aed5.firebasestorage.app",
+      messagingSenderId: "752666866084",
+      appId: "1:752666866084:web:409685bc9912cd6e1ed131"
+    };
+  </script>
 
   <script>
     // Authentication check
@@ -647,8 +658,68 @@
     };
 
     // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    let db;
+    
+    // Verify config is loaded
+    if (!firebaseConfig || !firebaseConfig.projectId) {
+      console.error('❌ firebase-config.js not loaded or invalid!');
+      alert('Firebase configuration not found. Please check firebase-config.js file.');
+    } else {
+      console.log('📋 Firebase Config loaded:', {
+        projectId: firebaseConfig.projectId,
+        authDomain: firebaseConfig.authDomain
+      });
+    }
+    
+    try {
+      // Check if Firebase is already initialized
+      if (firebase.apps.length === 0) {
+        firebase.initializeApp(firebaseConfig);
+        console.log('✅ Firebase app initialized');
+      } else {
+        console.log('ℹ️ Firebase app already initialized');
+      }
+      
+      db = firebase.firestore();
+      
+      // Set Firestore settings
+      db.settings({
+        ignoreUndefinedProperties: true
+      });
+      
+      // Test connection with a simple read
+      db.collection('tasks').limit(1).get()
+        .then(() => {
+          console.log('✅ Firestore connection test: SUCCESS');
+        })
+        .catch((err) => {
+          console.error('❌ Firestore connection test: FAILED', err);
+          if (err.code === 'permission-denied') {
+            console.error('🔒 PERMISSION DENIED - Check Firestore Rules!');
+            console.error('Go to: Firebase Console → Firestore → Rules → Click PUBLISH');
+          }
+        });
+      
+      // Enable offline persistence (optional, helps with connection issues)
+      db.enablePersistence().catch((err) => {
+        if (err.code === 'failed-precondition') {
+          console.warn('⚠️ Multiple tabs open, persistence can only be enabled in one tab at a time.');
+        } else if (err.code === 'unimplemented') {
+          console.warn('⚠️ The current browser does not support persistence.');
+        } else {
+          console.warn('⚠️ Persistence error:', err);
+        }
+      });
+      
+      console.log('✅ Firebase connected successfully!');
+      console.log('📊 Project ID:', firebaseConfig.projectId);
+    } catch (error) {
+      console.error('❌ Firebase initialization error:', error);
+      console.error('Config used:', firebaseConfig);
+      alert('Error connecting to database. Please check firebase-config.js and Firestore rules.');
+      // Still initialize db even if there's an error
+      db = firebase.firestore();
+    }
 
     const tasks = [];
     let taskId = 0;
@@ -657,6 +728,8 @@
     // Load tasks from Firestore
     async function loadTasks() {
       try {
+        console.log('📥 Loading tasks from database...');
+        console.log('🔍 Using project:', firebaseConfig.projectId);
         const snapshot = await db.collection('tasks').get();
         tasks.length = 0;
         taskId = 0;
@@ -667,11 +740,19 @@
         });
         // Sort by ID descending
         tasks.sort((a, b) => (b.id || 0) - (a.id || 0));
+        console.log(`✅ Loaded ${tasks.length} tasks from database`);
         render();
         renderChart();
         renderPieChart();
       } catch (error) {
-        console.error('Error loading tasks:', error);
+        console.error('❌ Error loading tasks:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        if (error.code === 'permission-denied') {
+          alert('Permission denied! Please:\n1. Go to Firebase Console → Firestore → Rules\n2. Make sure rules are PUBLISHED (click Publish button)\n3. Refresh this page');
+        } else {
+          alert('Failed to load tasks. Error: ' + error.message);
+        }
         // Still render even if there's an error
         render();
       }
@@ -680,9 +761,20 @@
     // Save task to Firestore
     async function saveTask(task) {
       try {
+        console.log('💾 Saving task to Firestore:', task);
         await db.collection('tasks').doc(task.id.toString()).set(task);
+        console.log('✅ Task saved to database:', task.id);
+        return true;
       } catch (error) {
-        console.error('Error saving task:', error);
+        console.error('❌ Error saving task:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        if (error.code === 'permission-denied') {
+          alert('Permission denied! Please check Firestore Rules are published in Firebase Console.');
+        } else {
+          alert('Failed to save task: ' + error.message);
+        }
+        throw error;
       }
     }
 
@@ -690,8 +782,10 @@
     async function deleteTask(taskId) {
       try {
         await db.collection('tasks').doc(taskId.toString()).delete();
+        console.log('✅ Task deleted from database:', taskId);
       } catch (error) {
-        console.error('Error deleting task:', error);
+        console.error('❌ Error deleting task:', error);
+        throw error; // Re-throw so caller can handle it
       }
     }
 
@@ -705,7 +799,9 @@
           renderMembers();
         }
       } catch (error) {
-        console.error('Error loading members:', error);
+        console.error('❌ Error loading members:', error);
+        // Don't show alert for members, just log it
+        // Members will be empty, which is fine
       }
     }
 
@@ -719,30 +815,36 @@
     }
 
     // Real-time listener for tasks (syncs across all users)
-    db.collection('tasks').onSnapshot((snapshot) => {
-      const changes = snapshot.docChanges();
-      changes.forEach(change => {
-        if (change.type === 'added' || change.type === 'modified') {
-          const data = change.doc.data();
-          const index = tasks.findIndex(t => t.id === data.id);
-          if (index >= 0) {
-            tasks[index] = data;
-          } else {
-            tasks.push(data);
-            if (data.id > taskId) taskId = data.id;
+    db.collection('tasks').onSnapshot(
+      (snapshot) => {
+        const changes = snapshot.docChanges();
+        changes.forEach(change => {
+          if (change.type === 'added' || change.type === 'modified') {
+            const data = change.doc.data();
+            const index = tasks.findIndex(t => t.id === data.id);
+            if (index >= 0) {
+              tasks[index] = data;
+            } else {
+              tasks.push(data);
+              if (data.id > taskId) taskId = data.id;
+            }
+          } else if (change.type === 'removed') {
+            const id = Number(change.doc.id);
+            const index = tasks.findIndex(t => t.id === id);
+            if (index >= 0) {
+              tasks.splice(index, 1);
+            }
           }
-        } else if (change.type === 'removed') {
-          const id = Number(change.doc.id);
-          const index = tasks.findIndex(t => t.id === id);
-          if (index >= 0) {
-            tasks.splice(index, 1);
-          }
-        }
-      });
-      render();
-      renderChart();
-      renderPieChart();
-    });
+        });
+        render();
+        renderChart();
+        renderPieChart();
+      },
+      (error) => {
+        console.error('❌ Real-time listener error:', error);
+        // Don't show alert, just log - app will still work with manual refresh
+      }
+    );
 
     // Load initial data
     loadTasks();
@@ -931,11 +1033,19 @@
         const id = Number(e.target.dataset.id);
         const idx = tasks.findIndex(t => t.id === id);
         if (idx !== -1) {
+          const task = tasks[idx];
           tasks.splice(idx, 1);
-          deleteTask(id); // Delete from Firestore
-          render();
-          renderChart();
-          renderPieChart();
+          deleteTask(id).then(() => {
+            console.log('✅ Task deleted:', id);
+            render();
+            renderChart();
+            renderPieChart();
+          }).catch((error) => {
+            console.error('❌ Failed to delete task:', error);
+            tasks.splice(idx, 0, task); // Restore on error
+            alert('Failed to delete task. Please check your connection.');
+            render();
+          });
         }
       }
       const dateCell = e.target.closest(".date-cell");
@@ -1311,13 +1421,22 @@
       renderPieChart();
     });
 
-    taskBody.addEventListener("change", (e) => {
+    taskBody.addEventListener("change", async (e) => {
       if (e.target.classList.contains("status-select")) {
         const id = Number(e.target.dataset.id);
         const task = tasks.find(t => t.id === id);
         if (task) {
+          const oldStatus = task.status;
           task.status = e.target.value;
-          saveTask(task); // Save to Firestore
+          try {
+            await saveTask(task);
+            console.log('✅ Task status updated:', task.id);
+          } catch (error) {
+            console.error('❌ Failed to update status:', error);
+            task.status = oldStatus; // Revert on error
+            e.target.value = oldStatus;
+            alert('Failed to update task status. Please check your connection.');
+          }
           applyStatusStyle(e.target);
           updateMetrics();
           renderChart();
@@ -1328,8 +1447,17 @@
         const id = Number(e.target.dataset.id);
         const task = tasks.find(t => t.id === id);
         if (task) {
+          const oldDeadline = task.deadline;
           task.deadline = e.target.value;
-          saveTask(task); // Save to Firestore
+          try {
+            await saveTask(task);
+            console.log('✅ Task deadline updated:', task.id);
+          } catch (error) {
+            console.error('❌ Failed to update deadline:', error);
+            task.deadline = oldDeadline; // Revert on error
+            e.target.value = oldDeadline;
+            alert('Failed to update deadline. Please check your connection.');
+          }
           const display = e.target.parentElement.querySelector(".deadline-display");
           if (display) display.value = task.deadline ? formatDate(task.deadline) : "";
           updateMetrics();
