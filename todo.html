@@ -662,8 +662,8 @@
     
     // Verify config is loaded
     if (!firebaseConfig || !firebaseConfig.projectId) {
-      console.error('❌ firebase-config.js not loaded or invalid!');
-      alert('Firebase configuration not found. Please check firebase-config.js file.');
+      console.error('❌ Firebase config not loaded or invalid!');
+      console.error('Config object:', firebaseConfig);
     } else {
       console.log('📋 Firebase Config loaded:', {
         projectId: firebaseConfig.projectId,
@@ -673,6 +673,11 @@
     
     try {
       // Check if Firebase is already initialized
+      if (typeof firebase === 'undefined') {
+        console.error('❌ Firebase SDK not loaded! Check script tags.');
+        throw new Error('Firebase SDK not available');
+      }
+      
       if (firebase.apps.length === 0) {
         firebase.initializeApp(firebaseConfig);
         console.log('✅ Firebase app initialized');
@@ -681,33 +686,49 @@
       }
       
       db = firebase.firestore();
+      console.log('✅ Firestore instance created');
       
-      // Set Firestore settings
-      db.settings({
-        ignoreUndefinedProperties: true
-      });
-      
-      // Test connection with a simple read
-      db.collection('tasks').limit(1).get()
-        .then(() => {
-          console.log('✅ Firestore connection test: SUCCESS');
-        })
-        .catch((err) => {
-          console.error('❌ Firestore connection test: FAILED', err);
-          if (err.code === 'permission-denied') {
-            console.error('🔒 PERMISSION DENIED - Check Firestore Rules!');
-            console.error('Go to: Firebase Console → Firestore → Rules → Click PUBLISH');
-          }
+      // Set Firestore settings (don't fail if this errors)
+      try {
+        db.settings({
+          ignoreUndefinedProperties: true
         });
+      } catch (settingsError) {
+        console.warn('⚠️ Could not set Firestore settings:', settingsError);
+      }
       
-      // Enable offline persistence (optional, helps with connection issues)
+      // Test connection with a simple read (don't block on this)
+      setTimeout(() => {
+        db.collection('tasks').limit(1).get()
+          .then(() => {
+            console.log('✅ Firestore connection test: SUCCESS');
+          })
+          .catch((err) => {
+            console.error('❌ Firestore connection test: FAILED', err);
+            console.error('Error code:', err.code);
+            console.error('Error message:', err.message);
+            if (err.code === 'permission-denied') {
+              console.error('🔒 PERMISSION DENIED!');
+              console.error('📝 Steps to fix:');
+              console.error('1. Go to: https://console.firebase.google.com/');
+              console.error('2. Select project: Tasks Manager');
+              console.error('3. Go to: Firestore Database → Rules');
+              console.error('4. Make sure rules allow read/write: if true');
+              console.error('5. Click "Publish" button (top right)');
+              console.error('6. Wait for "Rules published successfully"');
+              console.error('7. Refresh this page');
+            }
+          });
+      }, 1000);
+      
+      // Enable offline persistence (optional, don't fail if this errors)
       db.enablePersistence().catch((err) => {
         if (err.code === 'failed-precondition') {
           console.warn('⚠️ Multiple tabs open, persistence can only be enabled in one tab at a time.');
         } else if (err.code === 'unimplemented') {
           console.warn('⚠️ The current browser does not support persistence.');
         } else {
-          console.warn('⚠️ Persistence error:', err);
+          console.warn('⚠️ Persistence error (non-critical):', err.message);
         }
       });
       
@@ -715,18 +736,40 @@
       console.log('📊 Project ID:', firebaseConfig.projectId);
     } catch (error) {
       console.error('❌ Firebase initialization error:', error);
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
       console.error('Config used:', firebaseConfig);
-      alert('Error connecting to database. Please check firebase-config.js and Firestore rules.');
-      // Still initialize db even if there's an error
-      db = firebase.firestore();
+      console.error('Firebase available:', typeof firebase !== 'undefined');
+      
+      // Don't show blocking alert - just log to console
+      console.error('⚠️ Firebase initialization failed, but continuing anyway...');
+      console.error('The app will work in offline mode. Check console for details.');
+      
+      // Still try to initialize db even if there's an error
+      try {
+        db = firebase.firestore();
+      } catch (dbError) {
+        console.error('❌ Could not create Firestore instance:', dbError);
+      }
     }
 
     const tasks = [];
     let taskId = 0;
     const members = [];
 
+    // Ensure db is defined
+    if (!db) {
+      console.error('❌ Firestore db not initialized!');
+      console.error('The app will work in offline mode. Tasks will not be saved to database.');
+    }
+
     // Load tasks from Firestore
     async function loadTasks() {
+      if (!db) {
+        console.warn('⚠️ Cannot load tasks - Firestore not initialized');
+        render();
+        return;
+      }
       try {
         console.log('📥 Loading tasks from database...');
         console.log('🔍 Using project:', firebaseConfig.projectId);
@@ -749,9 +792,13 @@
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
         if (error.code === 'permission-denied') {
-          alert('Permission denied! Please:\n1. Go to Firebase Console → Firestore → Rules\n2. Make sure rules are PUBLISHED (click Publish button)\n3. Refresh this page');
+          console.error('🔒 PERMISSION DENIED!');
+          console.error('📝 To fix:');
+          console.error('1. Go to Firebase Console → Firestore → Rules');
+          console.error('2. Make sure rules are PUBLISHED (click Publish button)');
+          console.error('3. Refresh this page');
         } else {
-          alert('Failed to load tasks. Error: ' + error.message);
+          console.error('Failed to load tasks. Error: ' + error.message);
         }
         // Still render even if there's an error
         render();
@@ -760,6 +807,11 @@
 
     // Save task to Firestore
     async function saveTask(task) {
+      if (!db) {
+        console.warn('⚠️ Cannot save task - Firestore not initialized');
+        console.warn('Task will only be saved locally. Check Firebase connection.');
+        return false;
+      }
       try {
         console.log('💾 Saving task to Firestore:', task);
         await db.collection('tasks').doc(task.id.toString()).set(task);
@@ -770,9 +822,10 @@
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
         if (error.code === 'permission-denied') {
-          alert('Permission denied! Please check Firestore Rules are published in Firebase Console.');
+          console.error('🔒 PERMISSION DENIED!');
+          console.error('📝 To fix: Go to Firebase Console → Firestore → Rules → Click PUBLISH');
         } else {
-          alert('Failed to save task: ' + error.message);
+          console.error('Failed to save task: ' + error.message);
         }
         throw error;
       }
@@ -791,6 +844,10 @@
 
     // Load members from Firestore
     async function loadMembers() {
+      if (!db) {
+        console.warn('⚠️ Cannot load members - Firestore not initialized');
+        return;
+      }
       try {
         const doc = await db.collection('members').doc('list').get();
         if (doc.exists) {
@@ -807,6 +864,10 @@
 
     // Save members to Firestore
     async function saveMembers() {
+      if (!db) {
+        console.warn('⚠️ Cannot save members - Firestore not initialized');
+        return;
+      }
       try {
         await db.collection('members').doc('list').set({ list: members });
       } catch (error) {
