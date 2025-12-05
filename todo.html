@@ -603,21 +603,21 @@
       "natanel@example.com",
       "Natanel.Shani@gmail.com",
       "adipeled11@gmail.com"
-      // Add more admin emails here (must match login.html)
+      // Add more admin emails here (must match index.html)
     ];
 
     const authToken = localStorage.getItem("authToken");
     const authEmail = localStorage.getItem("authEmail");
     
     if (!authToken || !authEmail) {
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     } else {
       // Case-insensitive comparison
       const isAuthorized = ADMIN_EMAILS.some(adminEmail => 
         adminEmail.toLowerCase() === authEmail.toLowerCase()
       );
       if (!isAuthorized) {
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       }
     }
 
@@ -959,7 +959,7 @@
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("authToken");
       localStorage.removeItem("authEmail");
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     });
 
     memberForm.addEventListener("submit", (e) => {
