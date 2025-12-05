@@ -207,49 +207,37 @@
   <div class="login-container">
     <div class="badge">Natanel Shani Tasks</div>
     <h1>Sign In</h1>
-    <div class="subtitle">Enter your email to access the board</div>
+    <div class="subtitle">Enter your password to access the board</div>
     
     <form id="loginForm">
       <div class="form-group">
-        <label for="email">Email Address</label>
+        <label for="password">Password</label>
         <input 
-          type="email" 
-          id="email" 
-          placeholder="admin@example.com" 
+          type="password" 
+          id="password" 
+          placeholder="Enter password" 
           required 
-          autocomplete="email"
+          autocomplete="current-password"
         >
       </div>
       <button type="submit">Sign In</button>
-      <div class="error" id="error">Access denied. This email is not authorized.</div>
+      <div class="error" id="error">Access denied. Incorrect password.</div>
     </form>
   </div>
 
   <script>
     const loginForm = document.getElementById("loginForm");
-    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
     const errorDiv = document.getElementById("error");
     const darkToggle = document.getElementById("darkToggle");
 
-    // List of authorized admin emails
-    const ADMIN_EMAILS = [
-      "admin@natanelshani.com",
-      "natanel@example.com",
-      "Natanel.Shani@gmail.com",
-      "adipeled11@gmail.com"
-      // Add more admin emails here
-    ];
+    // Correct password
+    const CORRECT_PASSWORD = "nati#3155";
 
     // Check if already logged in
     const authToken = localStorage.getItem("authToken");
-    const authEmail = localStorage.getItem("authEmail");
-    if (authToken && authEmail) {
-      const isAuthorized = ADMIN_EMAILS.some(adminEmail => 
-        adminEmail.toLowerCase() === authEmail.toLowerCase()
-      );
-      if (isAuthorized) {
-        window.location.href = "todo.html";
-      }
+    if (authToken) {
+      window.location.href = "todo.html";
     }
 
     // Dark mode toggle
@@ -264,39 +252,35 @@
 
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const email = emailInput.value.trim().toLowerCase();
+      const password = passwordInput.value;
       
       errorDiv.classList.remove("show");
 
-      if (!email) {
-        errorDiv.textContent = "Please enter your email address.";
+      if (!password) {
+        errorDiv.textContent = "Please enter your password.";
         errorDiv.classList.add("show");
         return;
       }
 
-      // Case-insensitive comparison
-      const isAuthorized = ADMIN_EMAILS.some(adminEmail => 
-        adminEmail.toLowerCase() === email
-      );
-
-      if (!isAuthorized) {
-        errorDiv.textContent = "Access denied. This email is not authorized to access the board.";
+      // Check password
+      if (password !== CORRECT_PASSWORD) {
+        errorDiv.textContent = "Access denied. Incorrect password.";
         errorDiv.classList.add("show");
-        emailInput.focus();
+        passwordInput.focus();
+        passwordInput.value = "";
         return;
       }
 
       // Store authentication
-      const token = btoa(email + ":" + Date.now());
+      const token = btoa("authenticated:" + Date.now());
       localStorage.setItem("authToken", token);
-      localStorage.setItem("authEmail", email);
 
       // Redirect to todo page
       window.location.href = "todo.html";
     });
 
-    // Focus email input on load
-    emailInput.focus();
+    // Focus password input on load
+    passwordInput.focus();
   </script>
 </body>
 </html>

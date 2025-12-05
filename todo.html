@@ -203,10 +203,10 @@
     .pill.epic-research { background: rgba(6, 182, 212, 0.14); color: #0891b2; }
     .pill.epic-growth { background: rgba(16, 185, 129, 0.14); color: #059669; }
     .pill.epic-other { background: rgba(245, 158, 11, 0.14); color: #d97706; }
-    .pill.risk-low { background: rgba(31, 191, 117, 0.12); color: #11885a; }
-    .pill.risk-medium { background: rgba(249, 178, 52, 0.18); color: #a56705; }
-    .pill.risk-med { background: rgba(249, 178, 52, 0.18); color: #a56705; }
-    .pill.risk-high { background: rgba(239, 71, 111, 0.15); color: #b6163c; }
+    .pill.prioritize-low { background: rgba(31, 191, 117, 0.12); color: #11885a; }
+    .pill.prioritize-medium { background: rgba(249, 178, 52, 0.18); color: #a56705; }
+    .pill.prioritize-med { background: rgba(249, 178, 52, 0.18); color: #a56705; }
+    .pill.prioritize-high { background: rgba(239, 71, 111, 0.15); color: #b6163c; }
     .pill.status-open { background: rgba(42, 123, 255, 0.12); color: var(--accent-2); }
     .pill.status-in-progress { background: rgba(249, 178, 52, 0.16); color: #a56705; }
     .pill.status-done { background: rgba(31, 191, 117, 0.14); color: #11885a; }
@@ -394,7 +394,7 @@
       <div>
         <div class="badge">Natanel Shani Tasks</div>
         <h1>Mission Control To-Do</h1>
-        <div class="muted">Organize epics, owners, risk, and delivery dates in one place.</div>
+        <div class="muted">Organize epics, owners, prioritize, and delivery dates in one place.</div>
       </div>
       <div class="header-actions">
         <form id="memberForm" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -451,8 +451,8 @@
           <select id="assignee"></select>
         </div>
         <div>
-          <label for="risk">Risk</label>
-          <select id="risk" required>
+          <label for="prioritize">Prioritize</label>
+          <select id="prioritize" required>
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
@@ -503,7 +503,7 @@
             <th>Task</th>
             <th>Deadline</th>
             <th>Assignee</th>
-            <th>Risk</th>
+            <th>Prioritize</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -609,27 +609,10 @@
 
   <script>
     // Authentication check
-    const ADMIN_EMAILS = [
-      "admin@natanelshani.com",
-      "natanel@example.com",
-      "Natanel.Shani@gmail.com",
-      "adipeled11@gmail.com"
-      // Add more admin emails here (must match index.html)
-    ];
-
     const authToken = localStorage.getItem("authToken");
-    const authEmail = localStorage.getItem("authEmail");
     
-    if (!authToken || !authEmail) {
+    if (!authToken) {
       window.location.href = "index.html";
-    } else {
-      // Case-insensitive comparison
-      const isAuthorized = ADMIN_EMAILS.some(adminEmail => 
-        adminEmail.toLowerCase() === authEmail.toLowerCase()
-      );
-      if (!isAuthorized) {
-        window.location.href = "index.html";
-      }
     }
 
     const form = document.getElementById("taskForm");
@@ -778,6 +761,14 @@
         taskId = 0;
         snapshot.forEach(doc => {
           const data = doc.data();
+          // Backward compatibility: migrate "risk" to "prioritize"
+          if (data.risk && !data.prioritize) {
+            data.prioritize = data.risk;
+            // Update in database
+            db.collection('tasks').doc(doc.id).update({ prioritize: data.risk }).catch(err => {
+              console.warn('Could not migrate risk to prioritize:', err);
+            });
+          }
           tasks.push(data);
           if (data.id && data.id > taskId) taskId = data.id;
         });
@@ -997,7 +988,7 @@
               </div>
             </td>
             <td>${t.assignee}</td>
-            <td><span class="pill risk-${t.risk.toLowerCase()}">${t.risk}</span></td>
+            <td><span class="pill prioritize-${(t.prioritize || t.risk || 'Low').toLowerCase()}">${t.prioritize || t.risk || 'Low'}</span></td>
             <td>
               <select class="status-select" data-id="${t.id}">
                 <option ${t.status === "Open" ? "selected" : ""}>Open</option>
@@ -1134,7 +1125,6 @@
     const logoutBtn = document.getElementById("logoutBtn");
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("authToken");
-      localStorage.removeItem("authEmail");
       window.location.href = "index.html";
     });
 
@@ -1466,7 +1456,7 @@
         task: document.getElementById("task").value.trim(),
         deadline: deadlineInput.value,
         assignee: document.getElementById("assignee").value,
-        risk: document.getElementById("risk").value,
+        prioritize: document.getElementById("prioritize").value,
         status: document.getElementById("status").value,
         createdAt: new Date().toISOString().split("T")[0],
       };
