@@ -262,14 +262,22 @@
       color: var(--text);
     }
 
-    .status-select {
-      width: 100%;
-      min-width: 150px;
-      background: #fff;
-      font-weight: 700;
-      color: var(--text);
-      border-color: var(--border);
-    }
+      .status-select {
+        width: 100%;
+        min-width: 150px;
+        background: #fff;
+        font-weight: 700;
+        color: var(--text);
+        border-color: var(--border);
+      }
+
+      @media (max-width: 768px) {
+        .status-select {
+          min-width: 120px;
+          font-size: 13px;
+          padding: 8px 10px;
+        }
+      }
 
     body.dark .status-select {
       background: rgba(255, 255, 255, 0.04);
@@ -281,17 +289,25 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .delete-btn {
-      background: rgba(239, 71, 111, 0.12);
-      color: #b6163c;
-      border: 1px solid rgba(239, 71, 111, 0.25);
-      padding: 8px 12px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 700;
-      transition: transform 0.15s ease;
-      box-shadow: none;
-    }
+      .delete-btn {
+        background: rgba(239, 71, 111, 0.12);
+        color: #b6163c;
+        border: 1px solid rgba(239, 71, 111, 0.25);
+        padding: 8px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: transform 0.15s ease;
+        box-shadow: none;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 768px) {
+        .delete-btn {
+          padding: 6px 10px;
+          font-size: 12px;
+        }
+      }
 
     .delete-btn:hover {
       transform: translateY(-1px);
@@ -387,6 +403,212 @@
 
     .member-pop.active {
       display: block;
+    }
+
+    .chart-container {
+      margin-top: 20px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .chart-wrapper {
+      position: relative;
+    }
+
+    .line-chart-wrapper {
+      flex: 1;
+      min-width: 400px;
+      height: 400px;
+    }
+
+    .pie-chart-wrapper {
+      flex: 0 0 350px;
+      height: 350px;
+    }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+      body {
+        padding: 16px 12px 40px;
+      }
+
+      .shell {
+        gap: 12px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .header-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .header-actions form {
+        width: 100%;
+        flex-direction: row;
+      }
+
+      .header-actions form input {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .header-actions button {
+        width: 100%;
+        min-width: auto;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .panel {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      form {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      input, select, button {
+        padding: 10px 12px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+
+      .panel {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        min-width: 600px;
+      }
+
+      th, td {
+        padding: 10px 8px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      th:first-child, td:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--panel);
+        z-index: 1;
+        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+      }
+
+      body.dark th:first-child, body.dark td:first-child {
+        background: var(--panel);
+        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .controls {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .controls select {
+        width: 100%;
+        min-width: auto;
+      }
+
+      .filters, .metrics {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .metric {
+        padding: 10px;
+      }
+
+      .metric strong {
+        font-size: 20px;
+      }
+
+      .badge {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .member-pop {
+        position: fixed;
+        right: 12px;
+        left: 12px;
+        top: auto;
+        bottom: 20px;
+        max-width: none;
+        min-width: auto;
+        max-height: 50vh;
+        overflow-y: auto;
+      }
+
+      /* Chart containers for mobile */
+      .chart-container {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .line-chart-wrapper {
+        min-width: 100%;
+        width: 100%;
+        height: 300px;
+      }
+
+      .pie-chart-wrapper {
+        width: 100%;
+        height: 300px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 12px 8px 32px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .panel {
+        padding: 12px;
+      }
+
+      th, td {
+        padding: 8px 6px;
+        font-size: 12px;
+        min-width: 70px;
+      }
+
+      .pill {
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+
+      .member-chip {
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+
+      .header-actions form input {
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+    }
+
+    /* Landscape orientation adjustments for mobile */
+    @media (max-width: 768px) and (orientation: landscape) {
+      .line-chart-wrapper,
+      .pie-chart-wrapper {
+        height: 250px;
+      }
     }
   </style>
 </head>
@@ -588,11 +810,11 @@
           <option value="year">Year</option>
         </select>
       </div>
-      <div style="margin-top: 20px; display: flex; gap: 20px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 400px; position: relative; height: 400px;">
+      <div class="chart-container">
+        <div class="chart-wrapper line-chart-wrapper">
           <canvas id="chartCanvas"></canvas>
         </div>
-        <div style="flex: 0 0 350px; position: relative; height: 350px;">
+        <div class="chart-wrapper pie-chart-wrapper">
           <canvas id="pieCanvas"></canvas>
         </div>
       </div>
